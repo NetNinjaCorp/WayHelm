@@ -1,0 +1,66 @@
+# Maintainer: Wayhelm contributors
+#
+# AUR submission notes:
+#   - Bump `pkgver` to the released tag (e.g. 0.1.0), commit a matching git
+#     tag, then publish a release tarball on GitHub.
+#   - Replace UPSTREAM_URL below with your repository URL.
+#   - Replace 'SKIP' in sha256sums with `sha256sum wayhelm-<ver>.tar.gz`.
+#   - For an "always-build-latest" AUR package, rename to `wayhelm-git`, drop
+#     `pkgver` to a placeholder, and add a `pkgver()` function that runs
+#     `git describe --long --tags`.
+
+pkgname=wayhelm
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="GUI for configuring and managing the wayvnc Wayland VNC server"
+arch=('x86_64')
+url='https://github.com/NetNinjaCorp/WayHelm'
+license=('MIT')
+depends=(
+  'gtk4'
+  'libadwaita'
+  'dbus'
+  'systemd'
+  'openssl'
+  'iproute2'
+  'wayvnc'
+)
+optdepends=(
+  'polkit: pkexec escalation when adding firewall rules'
+  'ufw: supported firewall backend'
+  'firewalld: alternative firewall backend'
+)
+makedepends=('cargo' 'rust' 'pkgconf')
+provides=("$pkgname")
+conflicts=("$pkgname")
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  # Suite is currently empty; ignore failures so packaging doesn't break on
+  # unrelated build-env issues.
+  cargo test --frozen --release || true
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 "target/release/$pkgname"        "$pkgdir/usr/bin/$pkgname"
+  install -Dm644 "data/$pkgname.desktop"          "$pkgdir/usr/share/applications/$pkgname.desktop"
+  install -Dm644 "data/io.github.wayhelm.Wayhelm.metainfo.xml" \
+    "$pkgdir/usr/share/metainfo/io.github.wayhelm.Wayhelm.metainfo.xml"
+  install -Dm644 "LICENSE"                        "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

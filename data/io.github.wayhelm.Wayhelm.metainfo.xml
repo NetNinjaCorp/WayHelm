@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.wayhelm.Wayhelm</id>
+  <name>Wayhelm</name>
+  <summary>Configure and manage the wayvnc Wayland VNC server</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <description>
+    <p>
+      Wayhelm is a graphical front-end for wayvnc — the VNC server for
+      wlroots-based Wayland compositors (Hyprland, sway, river, wayfire,
+      labwc). It handles secure initial setup, generates TLS certificates and
+      RSA keys, installs a systemd user service, and provides live monitoring
+      of connected clients via a tray icon.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Step-by-step setup wizard for first-time configuration</li>
+      <li>Three-state authentication mode: encryption required, legacy fallbacks, or disabled</li>
+      <li>Self-signed TLS certificate generation with fingerprint display</li>
+      <li>Connection log of when clients connect and disconnect</li>
+      <li>System tray icon with live state and quick actions</li>
+      <li>Firewall (ufw / firewalld) detection and one-click port opening</li>
+      <li>Compatibility flags for legacy VNC clients</li>
+      <li>System diagnostics page</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">wayhelm.desktop</launchable>
+
+  <url type="homepage">https://github.com/NetNinjaCorp/WayHelm</url>
+  <url type="bugtracker">https://github.com/NetNinjaCorp/WayHelm/issues</url>
+  <url type="vcs-browser">https://github.com/NetNinjaCorp/WayHelm</url>
+
+  <developer id="io.github.wayhelm">
+    <name>Wayhelm contributors</name>
+  </developer>
+
+  <provides>
+    <binary>wayhelm</binary>
+  </provides>
+
+  <releases>
+    <release version="0.1.0" date="2026-05-29">
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+
+  <categories>
+    <category>System</category>
+    <category>Settings</category>
+    <category>Network</category>
+  </categories>
+
+  <recommends>
+    <display_length compare="ge">700</display_length>
+  </recommends>
+</component>

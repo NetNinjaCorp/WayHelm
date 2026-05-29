@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Wayhelm
+GenericName=VNC Server Configuration
+Comment=Configure and manage the wayvnc Wayland VNC server
+Exec=wayhelm
+Icon=network-server
+Terminal=false
+Categories=System;Settings;Network;
+Keywords=vnc;remote;desktop;wayland;wayvnc;wayhelm;
+StartupNotify=true
