@@ -949,11 +949,16 @@ fn build_wayvnc_options_group(prefs: &adw::PreferencesPage, toast: &adw::ToastOv
                 _ => None,
             };
             s.compat_mode = switch_row.is_active();
-            let text = output_row.text().to_string();
-            s.compat_output = if text.trim().is_empty() {
-                None
+            let raw = output_row.text().to_string();
+            if raw.trim().is_empty() {
+                s.compat_output = None;
+            } else if let Some(name) = settings::safe_output_name(&raw) {
+                s.compat_output = Some(name);
             } else {
-                Some(text)
+                toast.add_toast(adw::Toast::new(
+                    "Output name must be letters, digits, '-', '_' or '.' (e.g. DP-1)",
+                ));
+                return;
             };
             if let Err(e) = s.save() {
                 toast.add_toast(adw::Toast::new(&format!("Save failed: {e}")));

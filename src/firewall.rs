@@ -47,12 +47,40 @@ pub enum Scope {
 }
 
 pub fn open_port(fw: Firewall, port: u16, scope: &Scope) -> Result<()> {
+    // Belt-and-braces CIDR sanity check at the privileged-execution boundary.
+    // The current detect_primary_lan_cidr() can only produce a well-formed
+    // address, but this guards against any future caller or refactor that
+    // might let user-controlled text reach a `pkexec sh -c …{cidr}…` path.
+    if let Scope::Lan(cidr) = scope {
+        if !is_valid_cidr(cidr) {
+            return Err(anyhow!("refusing to use malformed CIDR {cidr:?}"));
+        }
+    }
     match fw {
         Firewall::Ufw => open_ufw(port, scope),
         Firewall::Firewalld => open_firewalld(port, scope),
         Firewall::Nftables => Err(anyhow!(
             "Wayhelm doesn't automate raw nftables. Add a rule for TCP port {port} manually."
         )),
+    }
+}
+
+fn is_valid_cidr(cidr: &str) -> bool {
+    let Some((ip, prefix)) = cidr.split_once('/') else {
+        return false;
+    };
+    let v4 = ip.parse::<std::net::Ipv4Addr>().is_ok();
+    let v6 = ip.parse::<std::net::Ipv6Addr>().is_ok();
+    if !v4 && !v6 {
+        return false;
+    }
+    let Ok(p) = prefix.parse::<u32>() else {
+        return false;
+    };
+    if v4 {
+        p <= 32
+    } else {
+        p <= 128
     }
 }
 

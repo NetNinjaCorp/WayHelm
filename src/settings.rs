@@ -61,7 +61,18 @@ impl Settings {
         let dir = settings_dir();
         fs::create_dir_all(&dir).context("creating wayhelm config dir")?;
         let json = serde_json::to_string_pretty(self).context("serializing settings")?;
-        fs::write(settings_path(), json).context("writing settings.json")
+        let path = settings_path();
+        fs::write(&path, json).context("writing settings.json")?;
+        // 0600 — settings may grow to hold non-secret-but-private state
+        // (close-behavior choice, dismissed-banner flags). Better hygienic
+        // than relying on umask defaults.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o600))
+                .context("chmod 600 settings.json")?;
+        }
+        Ok(())
     }
 
     /// Build the extra arguments wayvnc should be launched with, given the
@@ -70,14 +81,16 @@ impl Settings {
         let mut parts: Vec<String> = Vec::new();
         if self.compat_mode {
             parts.push("-R".into());
+            // Only pass `-o` when the saved output name passes the strict
+            // whitelist. Anything else would risk injecting newlines or
+            // shell metacharacters into the systemd unit's ExecStart line.
             if let Some(out) = self
                 .compat_output
                 .as_deref()
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
+                .and_then(safe_output_name)
             {
                 parts.push("-o".into());
-                parts.push(out.to_string());
+                parts.push(out);
             }
         }
         if self.view_only {
@@ -101,5 +114,23 @@ impl Settings {
             parts.push("-g".into());
         }
         parts.join(" ")
+    }
+}
+
+/// Wayland output identifiers are well-defined (e.g. DP-1, HDMI-A-1, eDP-1,
+/// Virtual-1). Restrict to that shape so a maliciously crafted value can't
+/// land arbitrary text in our generated systemd ExecStart line.
+pub fn safe_output_name(s: &str) -> Option<String> {
+    let trimmed = s.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if trimmed
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
+    {
+        Some(trimmed.to_string())
+    } else {
+        None
     }
 }

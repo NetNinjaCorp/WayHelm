@@ -3,7 +3,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::config;
+use crate::{config, netinfo};
 
 #[derive(Debug, Clone)]
 pub struct CertPaths {
@@ -31,6 +31,15 @@ pub fn generate(cn: &str, days: u32) -> Result<CertPaths> {
     let paths = CertPaths::default_paths();
 
     let subject = format!("/CN={}", cn);
+    // subjectAltName entries: modern clients (and most browsers / wrappers)
+    // ignore CN and require SAN. Include the hostname plus every routable
+    // local IP so the cert matches whichever endpoint the user connects to.
+    let mut san_parts: Vec<String> = vec![format!("DNS:{cn}"), "IP:127.0.0.1".into()];
+    for iface in netinfo::local_addresses() {
+        san_parts.push(format!("IP:{}", iface.addr));
+    }
+    let san_ext = format!("subjectAltName={}", san_parts.join(","));
+
     run_ok(Command::new("openssl").args([
         "req",
         "-x509",
@@ -45,6 +54,8 @@ pub fn generate(cn: &str, days: u32) -> Result<CertPaths> {
         &days.to_string(),
         "-subj",
         &subject,
+        "-addext",
+        &san_ext,
     ]))?;
 
     // neatvnc's nettle backend only accepts PKCS#1 PEM ("BEGIN RSA PRIVATE KEY").

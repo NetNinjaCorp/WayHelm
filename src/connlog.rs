@@ -62,12 +62,24 @@ fn write_line(line: String) -> Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).context("creating wayhelm state dir")?;
     }
+    // Log contains usernames + peer IPs (PII). Make sure the file is owner-only
+    // even if the user's umask is permissive; only chmod on first create so we
+    // don't pay the syscall on every append.
+    let needs_chmod = !path.exists();
     let mut f = OpenOptions::new()
         .create(true)
         .append(true)
         .open(&path)
         .with_context(|| format!("opening {}", path.display()))?;
     f.write_all(line.as_bytes())?;
+    if needs_chmod {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))
+                .with_context(|| format!("chmod 600 {}", path.display()))?;
+        }
+    }
     Ok(())
 }
 

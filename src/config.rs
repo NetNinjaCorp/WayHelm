@@ -90,10 +90,18 @@ impl Config {
 
     pub fn render(&self) -> String {
         let mut s = String::new();
+        // Strip CR/LF from every value at the write boundary so user input that
+        // contains a newline can't inject a second key=value line (and through
+        // it, sensitive keys like `password=` or `enable_auth=false`). This is
+        // defense in depth; values normally arrive from controlled UI paths.
         let mut push = |k: &str, v: &str| {
             s.push_str(k);
             s.push('=');
-            s.push_str(v);
+            for c in v.chars() {
+                if c != '\n' && c != '\r' {
+                    s.push(c);
+                }
+            }
             s.push('\n');
         };
         if let Some(v) = &self.address {
