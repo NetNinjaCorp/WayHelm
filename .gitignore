@@ -2,3 +2,7 @@
 *.swp
 .DS_Store
 .claude/
+packaging/src/
+packaging/pkg/
+packaging/*.tar.gz
+packaging/*.tar.zst
