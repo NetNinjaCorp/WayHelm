@@ -34,7 +34,7 @@ makedepends=('cargo' 'rust' 'pkgconf')
 provides=("$pkgname")
 conflicts=("$pkgname")
 source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('0c8b75ad2798dfe7c90acca2ae6d0c4eb0f065cf4f5f58f2b160ff5c877404bd')
 
 prepare() {
   cd "$pkgname-$pkgver"

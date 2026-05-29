@@ -1,0 +1,26 @@
+pkgbase = wayhelm
+	pkgdesc = GUI for configuring and managing the wayvnc Wayland VNC server
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/NetNinjaCorp/WayHelm
+	arch = x86_64
+	license = MIT
+	makedepends = cargo
+	makedepends = rust
+	makedepends = pkgconf
+	depends = gtk4
+	depends = libadwaita
+	depends = dbus
+	depends = systemd
+	depends = openssl
+	depends = iproute2
+	depends = wayvnc
+	optdepends = polkit: pkexec escalation when adding firewall rules
+	optdepends = ufw: supported firewall backend
+	optdepends = firewalld: alternative firewall backend
+	provides = wayhelm
+	conflicts = wayhelm
+	source = wayhelm-0.1.0.tar.gz::https://github.com/NetNinjaCorp/WayHelm/archive/v0.1.0.tar.gz
+	sha256sums = 0c8b75ad2798dfe7c90acca2ae6d0c4eb0f065cf4f5f58f2b160ff5c877404bd
+
+pkgname = wayhelm
